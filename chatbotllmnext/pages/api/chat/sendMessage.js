@@ -1,38 +1,48 @@
 import { OpenAIEdgeStream } from "openai-edge-stream";
+
 export const config = {
-    runtime:'edge',
-}
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  runtime: "edge",
+};
+
+export default async function handler(req) {
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
+  const body = await req.json();
+  const { message } = body;
+  console.log('openai-input', message);
+  if (!message) {
+    return new Response(JSON.stringify({ error: "Invalid input" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   try {
-    console.log('message openaicall-start', req);
-
-    const { message } = await req.json();
-    console.log('message openaicall-', message);
-
     const stream = await OpenAIEdgeStream(
       "https://api.openai.com/v1/chat/completions",
       {
         headers: {
-          "content-type": 'application/json',
-          Authorization: `Bearer ${process.env.OPEN_API_KEY}`
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
         },
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [{ content: message, role: 'user' }],
-          stream: true
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: message }],
+          stream: true,
         }),
       }
     );
-    console.log('message openaicall-end', stream);
-
+    console.log('openai-stream', stream);
     return new Response(stream);
   } catch (error) {
-    console.error('Error in handler:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

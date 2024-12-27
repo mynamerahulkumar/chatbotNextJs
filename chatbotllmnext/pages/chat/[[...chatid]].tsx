@@ -30,20 +30,26 @@ export default function ChatPage() {
       throw new Error("Network response was not ok");
     }
 
-    const reader = response.body.getReader();
-    console.log("reader-"+reader)
-    const decoder = new TextDecoder();
-    let done = false;
+    const reader=data.getReader();
+    await streamReader(reader,(message)=>{
+      console.log("Message-"+message)
+      setIncomingMessage((s)=>`${s}${message.content}`)
+    })
 
-    while (!done) {
-      console.log("reader-read"+reader)
+    // const reader = response.body.getReader();
+    // console.log("reader-"+reader)
+    // const decoder = new TextDecoder();
+    // let done = false;
 
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      console.log("Value-"+value)
-      const chunkValue = decoder.decode(value, { stream: true });
-      setIncomingMessage((s) => `${s}${chunkValue}`);
-    }
+    // while (!done) {
+    //   console.log("reader-read"+reader)
+
+    //   const { value, done: doneReading } = await reader.read();
+    //   done = doneReading;
+    //   console.log("Value-"+value)
+    //   const chunkValue = decoder.decode(value, { stream: true });
+    //   setIncomingMessage((s) => `${s}${chunkValue}`);
+    // }
     console.log("Message Text "+messageText)
   }
   return (

@@ -13,8 +13,11 @@ export default async function handler(req) {
   }
 
   const body = await req.json();
+  const initialChatMessage={
+    role:'sytem',
+    content:'Your name is Perceptron and you are helpful,motivational,enthusisatic assistant,you reply to user queries and help them in their queries ,you reply in markdown format'
+  }
   const { message } = body;
-  console.log('openai-input', message);
   if (!message) {
     return new Response(JSON.stringify({ error: "Invalid input" }), {
       status: 400,
@@ -32,12 +35,11 @@ export default async function handler(req) {
         method: "POST",
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: message }],
+          messages: [{ role: "system", content: "Your name is Perceptron and you are a helpful, motivational, enthusiastic assistant. You reply to user queries and help them in their queries. You reply in markdown format." }, { role: "user", content: message }],
           stream: true,
         }),
       }
     );
-    console.log('openai-stream', stream);
     return new Response(stream);
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
